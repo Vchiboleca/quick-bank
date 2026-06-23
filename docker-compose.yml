@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: quickbank_postgres
+    environment:
+      POSTGRES_USER: quickbank
+      POSTGRES_PASSWORD: quickbank123
+      POSTGRES_DB: quickbank_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - '5435:5432'
+    volumes:
+      - quickbank_data:/var/lib/postgresql/data
+
+volumes:
+  quickbank_data:

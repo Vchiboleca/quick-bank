@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleType {
+  ADMIN
+  TELLER
+}
+
+enum GenderType {
+  M
+  F
+}
+
+enum CurrencyType {
+  MZN
+  USD
+  EUR
+  ZAR
+}
+
+enum AccountType {
+  SAVINGS
+  CURRENT
+}
+
+enum AccountStatus {
+  ACTIVE
+  BLOCKED
+  CLOSED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAW
+  TRANSFER
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         RoleType @default(TELLER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  clients      Client[]
+  transactions Transaction[]
+}
+
+model Client {
+  id          String     @id @default(uuid())
+  name        String
+  email       String     @unique
+  bi          String
+  nuit        String?
+  address     String?
+  nationality String?
+  gender      GenderType
+  fatherName  String?
+  motherName  String?
+  phone       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  createdById String
+
+  accounts  Account[]
+  createdBy User      @relation(fields: [createdById], references: [id])
+}
+
+model Account {
+  id          String        @id @default(uuid())
+  number      String        @unique
+  currency    CurrencyType  @default(MZN)
+  balance     Decimal       @default(0) @db.Decimal(10, 2)
+  status      AccountStatus @default(ACTIVE)
+  accountType AccountType
+  clientId    String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  client               Client        @relation(fields: [clientId], references: [id])
+  outgoingTransactions Transaction[] @relation("SourceAccount")
+  incomingTransactions Transaction[] @relation("DestinationAccount")
+}
+
+model Transaction {
+  id                String          @id @default(uuid())
+  type              TransactionType
+  amount            Decimal         @db.Decimal(10, 2)
+  description       String?
+  userId            String
+  senderIdAccount   String?
+  receiverIdAccount String?
+  createdAt         DateTime        @default(now())
+
+  madeBy   User     @relation(fields: [userId], references: [id])
+  sender   Account? @relation("SourceAccount", fields: [senderIdAccount], references: [id])
+  receiver Account? @relation("DestinationAccount", fields: [receiverIdAccount], references: [id])
+}
