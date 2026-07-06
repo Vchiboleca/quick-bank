@@ -58,7 +58,7 @@ model Client {
   id          String     @id @default(uuid())
   name        String
   email       String     @unique
-  bi          String
+  bi          String     @unique
   nuit        String?
   address     String?
   nationality String?
